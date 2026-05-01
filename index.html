@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>禾速車隊 HeSpeed Premium</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root {
+            --primary-blue: #1E90FF; --dark-blue: #0a1930; --bg-light: #f4f7f9;
+            --white: #ffffff; --success-green: #28a745; --warning-red: #d9534f;
+            --note-bg: #fff4f4; --line-green: #06C755;
+            --disabled-bg: #e9ecef; 
+        }
+        body { background-color: var(--bg-light); margin: 0; font-family: "Microsoft JhengHei", sans-serif; }
+        
+        .line-banner { display: none; background-color: var(--success-green); color: white; text-align: center; padding: 10px 0; font-weight: bold; }
+        .line-banner a { color: white; text-decoration: none; display: block; }
+        
+        header { background-color: var(--primary-blue); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .banner-container { width: 92%; max-width: 1000px; margin: 15px auto; }
+        .img-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .img-grid-2 img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; }
+
+        .nav-menu { display: flex; justify-content: center; gap: 8px; margin: 15px 0; padding: 0 10px; }
+        .nav-btn { flex: 1; padding: 12px; border: 2px solid var(--primary-blue); background: white; color: var(--primary-blue); border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+        .nav-btn.active { background: var(--primary-blue); color: white; }
+        
+        .section-container { display: none; width: 92%; max-width: 800px; margin: 0 auto 30px; padding: 25px; background: white; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.08); box-sizing: border-box; }
+        .active { display: block; }
+
+        .price-grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .price-card { background: #fff; border: 1px solid #eef2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .price-card .title { font-size: 0.95rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 5px; }
+        .price-card .amount { font-size: 1.3rem; font-weight: bold; color: var(--warning-red); }
+
+        .notice-box { margin-top: 15px; padding: 12px; background-color: var(--note-bg); border-left: 4px solid var(--warning-red); color: #b94a48; font-size: 0.85rem; border-radius: 4px; line-height: 1.5; }
+        .service-note-box { margin-top: 15px; padding: 12px; background-color: #eef7ff; border-left: 4px solid var(--primary-blue); color: var(--dark-blue); font-size: 0.85rem; border-radius: 4px; }
+
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9rem; }
+        .req-star { color: red; display: none; }
+        
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input:disabled { background-color: var(--disabled-bg); cursor: not-allowed; color: #6c757d; }
+        
+        .submit-btn { background: var(--primary-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .logged-in-only { display: none; }
+
+        .floating-line-btn {
+            position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px;
+            background-color: var(--line-green); border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(6, 199, 85, 0.4); display: flex;
+            justify-content: center; align-items: center; z-index: 9999;
+            text-decoration: none; animation: pulse 2s infinite;
+        }
+        .floating-line-tooltip {
+            position: absolute; right: 75px; background: white; color: var(--dark-blue);
+            padding: 8px 14px; border-radius: 20px; font-size: 0.85rem;
+            font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            white-space: nowrap; pointer-events: none;
+        }
+        .floating-line-tooltip::after {
+            content: ''; position: absolute; right: -6px; top: 50%;
+            transform: translateY(-50%); border-width: 6px 0 6px 6px;
+            border-style: solid; border-color: transparent transparent transparent white;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(6, 199, 85, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(6, 199, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(6, 199, 85, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="line-banner">
+    <a href="https://line.me/R/ti/p/@372fxlit" target="_blank">官方 LINE 帳號：@372fxlit (點擊自動登入)</a>
+</div>
+
+<header>
+    <h1 style="margin:0; font-size: 1.4rem;">禾速車隊 HeSpeed</h1>
+    <div id="user-display">訪客您好</div>
+</header>
+
+<div class="banner-container">
+    <div class="img-grid-2">
+        <img src="https://github.com/hespeed/line/blob/main/Gemini_Generated_Image_mfuhy0mfuhy0mfuh-%E4%BA%BA%E4%B9%9D%E5%BA%A7%E8%BB%8A.png?raw=true">
+        <img src="https://github.com/hespeed/line/blob/main/Gemini_Generated_Image_gcup6mgcup6mgcup-%E4%BA%94%E4%BA%BA%E5%BA%A7%E8%BB%8A.png?raw=true">
+    </div>
+</div>
+
+<div class="nav-menu">
+    <button class="nav-btn active" onclick="switchTab('home', this)">首頁</button>
+    <button class="nav-btn guest-only" onclick="switchTab('login', this)">登入/註冊</button>
+    <button class="nav-btn logged-in-only" onclick="switchTab('member-area', this)">會員管理</button>
+</div>
+
+<div id="home" class="section-container active">
+    <h2 style="text-align: center; color: var(--primary-blue); margin-top:0;">尊榮接送服務</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+        <div style="background:#eef7ff; padding:15px; border-radius:12px; text-align:center; cursor:pointer; font-weight:bold; color:var(--dark-blue);" onclick="openBooking('機場接機')">✈️<br>接機</div>
+        <div style="background:#eef7ff; padding:15px; border-radius:12px; text-align:center; cursor:pointer; font-weight:bold; color:var(--dark-blue);" onclick="openBooking('機場送機')">🛫<br>送機</div>
+        <div style="background:#eef7ff; padding:15px; border-radius:12px; text-align:center; cursor:pointer; font-weight:bold; color:var(--dark-blue);" onclick="openBooking('定點接送')">📍<br>定點接送</div>
+    </div>
+</div>
+
+<div id="login" class="section-container">
+    <h2 style="text-align:center; margin-top:0;">會員登入 / 註冊</h2>
+    
+    <button class="submit-btn" style="background:var(--line-green); margin-top:0;" onclick="liffLogin()">🟢 LINE 一鍵登入</button>
+    <p style="font-size: 0.85rem; color: #555; text-align: center; margin-top: 10px; margin-bottom: 25px; font-weight: bold;">
+        *首次使用請填寫手機與密碼，後續即可享有 LINE 自動登入。
+    </p>
+    
+    <div style="text-align:center; margin:20px 0; color:#888; font-size:0.9rem;">─ 或使用手機號碼 ─</div>
+    <label>手機號碼</label><input type="tel" id="login-phone" placeholder="請輸入手機號碼 (必填)">
+    <label>密碼</label><input type="password" id="login-pwd" placeholder="請輸入密碼 (必填)">
+    <label>稱謂 <span style="font-weight:normal; color:#888; font-size:0.8rem;">(初次註冊建議填寫)</span></label>
+    <input type="text" id="login-name" placeholder="例如：王先生 / 李小姐 (選填)">
+    
+    <button class="submit-btn" id="manual-login-btn" onclick="handleManualLogin()">確認 登入 / 註冊</button>
+</div>
+
+<div id="booking" class="section-container">
+    <!-- 🟢 頂部增加單程 / 來回 預訂選項 -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color:var(--primary-blue); margin:0;">服務預訂</h2>
+        <select id="trip-mode" style="width: auto; padding: 8px; font-weight: bold; color: var(--primary-blue); border: 2px solid var(--primary-blue);" onchange="toggleTripMode()">
+            <option value="one-way">單程預定</option>
+            <option value="round-trip">來回預定</option>
+        </select>
+    </div>
+
+    <!-- ================== 去程區塊 (trip-1) ================== -->
+    <div id="trip-1-block">
+        <label>服務類型 (去程)</label>
+        <select id="order-type" onchange="adjustFieldsByService('order-')">
+            <option value="機場接機">機場接機</option>
+            <option value="機場送機">機場送機</option>
+            <option value="定點接送">定點接送</option>
+        </select>
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>日期</label><input type="date" id="order-date"></div>
+            <div style="flex:1"><label>時間</label><input type="time" id="order-time"></div>
+        </div>
+        
+        <div id="order-dynamic-note" class="service-note-box"></div>
+        <div id="order-pickup-container"></div>
+        <div id="order-dropoff-container"></div>
+        
+        <label>航班編號 <span id="order-flight-req-star" class="req-star">* (接送機必填)</span></label>
+        <input type="text" id="order-flight" placeholder="請填寫航班編號">
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>人數</label><select id="order-pax" onchange="checkCarType('order-')"></select></div>
+            <div style="flex:1"><label>行李</label><select id="order-luggage"></select></div>
+        </div>
+
+        <div class="notice-box">
+            <b>提醒：</b>行李箱、登機箱、輪椅、手提行李各計算一件。<br>若上車現場與登錄尺寸數量有誤，將另行計算現場報價。
+        </div>
+
+        <label>車型需求</label>
+        <select id="order-car">
+            <option value="豪華轎車 (5人座)">豪華轎車 (5人座)</option>
+            <option value="豪華休旅車 (5人座)">豪華休旅車 (5人座)</option>
+            <option value="商務7~9人座車">商務7~9人座車</option>
+        </select>
+
+        <div class="notice-box">
+            <b>提醒：</b>行李箱請標示種類、尺寸、數量。<br>若上車現場與登錄尺寸數量有誤，將另行計算現場報價。
+        </div>
+
+        <label>備註需求</label><input type="text" id="order-note" placeholder="例如：需嬰兒座椅、2個28吋行李箱">
+    </div>
+
+    <!-- ================== 回程區塊 (trip-2) ================== -->
+    <div id="trip-2-block" style="display: none; border-top: 3px dashed var(--primary-blue); margin-top: 30px; padding-top: 15px;">
+        <h3 style="color:var(--primary-blue); margin-top:0; text-align: center;">🔄 回程預訂資訊</h3>
+        <label>服務類型 (回程)</label>
+        <select id="return-type" onchange="adjustFieldsByService('return-')">
+            <option value="機場接機">機場接機</option>
+            <option value="機場送機">機場送機</option>
+            <option value="定點接送">定點接送</option>
+        </select>
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>日期</label><input type="date" id="return-date"></div>
+            <div style="flex:1"><label>時間</label><input type="time" id="return-time"></div>
+        </div>
+        
+        <div id="return-dynamic-note" class="service-note-box"></div>
+        <div id="return-pickup-container"></div>
+        <div id="return-dropoff-container"></div>
+        
+        <label>航班編號 <span id="return-flight-req-star" class="req-star">* (接送機必填)</span></label>
+        <input type="text" id="return-flight" placeholder="請填寫航班編號">
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1"><label>人數</label><select id="return-pax" onchange="checkCarType('return-')"></select></div>
+            <div style="flex:1"><label>行李</label><select id="return-luggage"></select></div>
+        </div>
+
+        <div class="notice-box">
+            <b>提醒：</b>行李箱、登機箱、輪椅、手提行李各計算一件。<br>若上車現場與登錄尺寸數量有誤，將另行計算現場報價。
+        </div>
+
+        <label>車型需求</label>
+        <select id="return-car">
+            <option value="豪華轎車 (5人座)">豪華轎車 (5人座)</option>
+            <option value="豪華休旅車 (5人座)">豪華休旅車 (5人座)</option>
+            <option value="商務7~9人座車">商務7~9人座車</option>
+        </select>
+
+        <div class="notice-box">
+            <b>提醒：</b>行李箱請標示種類、尺寸、數量。<br>若上車現場與登錄尺寸數量有誤，將另行計算現場報價。
+        </div>
+
+        <label>備註需求</label><input type="text" id="return-note" placeholder="例如：需嬰兒座椅、2個28吋行李箱">
+    </div>
+
+    <!-- 共用送出按鈕 -->
+    <button class="submit-btn" id="order-btn" onclick="handleOrder()">確認預約並送出</button>
+</div>
+
+<div id="member-area" class="section-container">
+    <h2 style="text-align: center; color: var(--primary-blue); margin-top:0;">會員管理</h2>
+    <label>稱謂</label><input type="text" id="mem-name" placeholder="您的稱謂">
+    <label>常用地址</label><input type="text" id="mem-address" placeholder="常用上車或下車地址">
+    
+    <button class="submit-btn" id="save-mem-btn" onclick="updateMemberInfo()">更新會員資料</button>
+    <button class="submit-btn" style="background:#666; margin-top: 10px;" onclick="location.reload()">登出系統</button>
+</div>
+
+<a href="https://line.me/R/ti/p/@372fxlit" target="_blank" class="floating-line-btn">
+    <div class="floating-line-tooltip">專屬客服預約</div>
+    <svg viewBox="0 0 24 24" width="35" height="35" fill="white">
+        <path d="M21.543 10.498c0-4.321-4.22-7.85-9.42-7.85-5.197 0-9.418 3.529-9.418 7.85 0 3.86 3.376 7.153 8.016 7.766 1.05.158 1.463.766 1.258 1.503-.134.484-.424 1.543-.497 1.848-.112.464-.325 1.156 1.052.576 1.378-.58 7.42-4.373 8.57-6.284.288-.477.439-.967.439-1.409zm-13.82 1.488H6.182c-.347 0-.629-.282-.629-.629V8.673c0-.347.282-.629.629-.629.347 0 .629.282.629.629v2.054h1.541c.347 0 .629.282.629.629 0 .347-.282.629-.629.629zm2.748 0H9.191c-.347 0-.629-.282-.629-.629V8.673c0-.347.282-.629.629-.629.347 0 .629.282.629.629v2.684c0 .347-.282.629-.629.629zm3.504-1.921l-1.614-1.896c-.156-.184-.338-.282-.53-.282-.347 0-.629.282-.629.629v2.684c0 .347.282.629.629.629.277 0 .524-.183.606-.445l1.583-1.859v1.675c0 .347.282.629.629.629.347 0 .629-.282.629-.629V8.673c0-.347-.282-.629-.629-.629-.272 0-.518.176-.603.433l-.071.29zm3.768-.133h-1.54v-.695h1.54c.347 0 .629-.282.629-.629 0-.347-.282-.629-.629-.629h-2.17c-.347 0-.629.282-.629.629v2.684c0 .347.282.629.629.629h2.17c.347 0 .629-.282.629-.629 0-.347-.282-.629-.629-.629z"/>
+    </svg>
+</a>
+
+<script>
+    // 🔴 這裡請填入您最新的 GAS 發佈網址 與 LIFF ID
+    const API_URL = "https://script.google.com/macros/s/AKfycbyRN6Op8T7-JpJRff0ujK_8nfrYAqYGLmwFqyKTfUDiJgmczM1wn-39jeB5efLNFZz4/exec"; 
+    const LIFF_ID = "2009890777-cM1Qxrxz"; 
+    
+    let currentLoggedUser = "";
+    let currentUserName = "";
+    let currentLineUserId = ""; 
+
+    window.onload = function() {
+        // 同時初始化去程與回程的下拉選單
+        const p1 = document.getElementById('order-pax'), p2 = document.getElementById('return-pax');
+        const l1 = document.getElementById('order-luggage'), l2 = document.getElementById('return-luggage');
+        for (let i = 1; i <= 8; i++) {
+            p1.options.add(new Option(i + " 位", i));
+            p2.options.add(new Option(i + " 位", i));
+        }
+        for (let i = 0; i <= 10; i++) {
+            l1.options.add(new Option(i + " 件", i));
+            l2.options.add(new Option(i + " 件", i));
+        }
+        adjustFieldsByService('order-');
+        adjustFieldsByService('return-');
+        initLiff();
+    };
+
+    async function initLiff() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                currentLineUserId = profile.userId; 
+                verifyLineAutoLogin(currentLineUserId);
+            }
+        } catch (e) { console.error("LIFF 初始化失敗"); }
+    }
+
+    async function verifyLineAutoLogin(lineId) {
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "lineLogin", data: { lineUserId: lineId } }) });
+            const result = await res.json();
+            if (result.status === "Success") loginSuccess(result.user.name, result.user.account);
+        } catch (e) { console.log("LINE 自動登入驗證連線失敗"); }
+    }
+
+    function liffLogin() { if (!liff.isLoggedIn()) liff.login(); }
+
+    function switchTab(id, btn) {
+        document.querySelectorAll('.section-container').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(btn) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    }
+
+    // 🟢 切換來回預訂模式與智能判斷
+    function toggleTripMode() {
+        const mode = document.getElementById('trip-mode').value;
+        const trip2Block = document.getElementById('trip-2-block');
+        if (mode === 'round-trip') {
+            trip2Block.style.display = 'block';
+            
+            // 智能：若去程選接機，回程自動變送機；反之亦然
+            const type1 = document.getElementById('order-type').value;
+            const type2Elem = document.getElementById('return-type');
+            if (type1 === '機場接機') type2Elem.value = '機場送機';
+            else if (type1 === '機場送機') type2Elem.value = '機場接機';
+            else type2Elem.value = '定點接送';
+            
+            adjustFieldsByService('return-');
+        } else {
+            trip2Block.style.display = 'none';
+        }
+    }
+
+    // 🟢 支援共用的服務選項調整 (prefix 為 order- 或 return-)
+    function adjustFieldsByService(prefix) {
+        const type = document.getElementById(prefix + 'type').value;
+        const note = document.getElementById(prefix + 'dynamic-note');
+        const pCont = document.getElementById(prefix + 'pickup-container');
+        const dCont = document.getElementById(prefix + 'dropoff-container');
+        const flightInput = document.getElementById(prefix + 'flight'); 
+        
+        const airportSel = `<select id="${prefix}airport-list"><option>桃園國際機場</option><option>台北松山機場</option><option>台中清泉崗機場</option><option>高雄小港機場</option></select>`;
+        const addrInp = `<input type="text" id="${prefix}address-input" placeholder="請輸入地址">`;
+        const flightStar = document.getElementById(prefix + 'flight-req-star');
+
+        if (type === "機場接機") {
+            note.innerHTML = "<b>接機提醒：</b>若超過落地時間90分鐘，仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
+            pCont.innerHTML = `<label>起點 (機場)</label>` + airportSel;
+            dCont.innerHTML = `<label>終點 (送達地址)</label>` + addrInp;
+            flightStar.style.display = 'inline';
+            flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
+        } else if (type === "機場送機") {
+            note.innerHTML = "<b>送機提醒：</b>使用者預定時間，但接單後服務人員將視狀況告知正確的接車時間。";
+            pCont.innerHTML = `<label>起點 (接人地址)</label>` + addrInp;
+            dCont.innerHTML = `<label>終點 (機場)</label>` + airportSel;
+            flightStar.style.display = 'inline';
+            flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
+        } else {
+            note.innerHTML = "<b>定點提醒：</b>若超過預定，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
+            pCont.innerHTML = `<label>起點地址</label><input type="text" id="${prefix}p-addr" placeholder="請輸入起點">`;
+            dCont.innerHTML = `<label>終點地址</label><input type="text" id="${prefix}d-addr" placeholder="請輸入終點">`;
+            flightStar.style.display = 'none';
+            flightInput.value = ""; flightInput.disabled = true; flightInput.placeholder = "此服務無需填寫航班";
+        }
+    }
+
+    // 🟢 支援共用的車型檢查
+    function checkCarType(prefix) {
+        const paxCount = parseInt(document.getElementById(prefix + 'pax').value);
+        if (paxCount > 4) document.getElementById(prefix + 'car').value = "商務7~9人座車";
+    }
+
+    async function handleManualLogin() {
+        const ph = document.getElementById('login-phone').value.trim();
+        const pwd = document.getElementById('login-pwd').value.trim();
+        const name = document.getElementById('login-name').value.trim();
+        if (ph.length < 10 || !pwd) return alert("請輸入完整的手機號碼與密碼！");
+
+        const btn = document.getElementById('manual-login-btn');
+        btn.innerText = "驗證中..."; btn.disabled = true;
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "loginOrRegister", data: { account: ph, password: pwd, name: name, lineUserId: currentLineUserId } }) });
+            const result = await res.json(); 
+            if (result.status === "Success" || result.status === "Registered") {
+                loginSuccess(result.user.name, result.user.account);
+                if(result.status === "Registered") alert("註冊並綁定成功！系統已為您自動登入。");
+            } else if (result.status === "WrongPassword") alert("密碼錯誤，請重新確認！");
+        } catch (e) { alert("系統連線異常，請稍後再試。"); } 
+        finally { btn.innerText = "確認 登入 / 註冊"; btn.disabled = false; }
+    }
+
+    function loginSuccess(name, acc) {
+        currentLoggedUser = acc;
+        currentUserName = name;
+        document.getElementById('user-display').innerText = (name ? name : "尊榮會員") + "：" + acc;
+        document.getElementById('mem-name').value = name || "";
+        document.querySelectorAll('.guest-only').forEach(e => e.style.display = 'none');
+        document.querySelectorAll('.logged-in-only').forEach(e => e.style.display = 'block');
+        switchTab('home', document.querySelector('.nav-btn'));
+    }
+
+    function openBooking(type) {
+        if(!currentLoggedUser) {
+            alert("請先完成登入或註冊！");
+            return switchTab('login', document.querySelectorAll('.nav-btn')[1]);
+        }
+        // 重置為單程預訂
+        document.getElementById('trip-mode').value = 'one-way';
+        toggleTripMode();
+        document.getElementById('order-type').value = type;
+        adjustFieldsByService('order-');
+        switchTab('booking', null);
+    }
+
+    // 🟢 擷取與驗證表單資料的獨立函數
+    function extractOrderData(prefix, tripName) {
+        const type = document.getElementById(prefix + 'type').value;
+        const flightNum = document.getElementById(prefix + 'flight').value.trim();
+        const date = document.getElementById(prefix + 'date').value;
+        const time = document.getElementById(prefix + 'time').value;
+        const pax = parseInt(document.getElementById(prefix + 'pax').value);
+        const carType = document.getElementById(prefix + 'car').value;
+
+        if (!date || !time) { alert(`請填寫${tripName}預約日期與時間！`); return null; }
+        if ((type === '機場接機' || type === '機場送機') && !flightNum) {
+            alert(`【${tripName}】預約『` + type + `』必須填寫航班編號！`); return null;
+        }
+        if (pax > 4 && carType !== '商務7~9人座車') {
+            document.getElementById(prefix + 'car').value = "商務7~9人座車";
+            alert(`【${tripName}】人數超過 4 人，已自動更換為『商務7~9人座車』，請確認後再次點擊送出。`); return null;
+        }
+
+        let pV, dV;
+        if(type === "機場接機") { pV = document.getElementById(prefix + 'airport-list').value; dV = document.getElementById(prefix + 'address-input').value; }
+        else if(type === "機場送機") { pV = document.getElementById(prefix + 'address-input').value; dV = document.getElementById(prefix + 'airport-list').value; }
+        else { pV = document.getElementById(prefix + 'p-addr').value; dV = document.getElementById(prefix + 'd-addr').value; }
+
+        return {
+            type: type, account: currentLoggedUser, date: date, time: time,
+            pickup: pV, dropoff: dV, flightNum: flightNum || "-",
+            pax: pax, luggage: document.getElementById(prefix + 'luggage').value,
+            carType: carType, note: document.getElementById(prefix + 'note').value
+        };
+    }
+
+    // 🟢 改寫送出邏輯：若為來回，則拆分為兩筆訂單依序送出
+    async function handleOrder() {
+        const tripMode = document.getElementById('trip-mode').value;
+        
+        const trip1Data = extractOrderData('order-', '去程');
+        if (!trip1Data) return; // 驗證未通過
+
+        let trip2Data = null;
+        if (tripMode === 'round-trip') {
+            trip2Data = extractOrderData('return-', '回程');
+            if (!trip2Data) return; // 驗證未通過
+        }
+
+        const btn = document.getElementById('order-btn');
+        btn.disabled = true; btn.innerText = "資料傳送中...";
+
+        try {
+            // 1. 傳送去程訂單
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitOrder", data: trip1Data }) });
+            
+            // 2. 若有回程，等去程送完後，繼續傳送回程訂單
+            if (trip2Data) {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitOrder", data: trip2Data }) });
+            }
+
+            alert("訂單送出成功！已通知客服團隊。\n\n💡 小提醒：若訊息未立即更新，請嘗試滑掉重啟聊天室。");
+            switchTab('home', document.querySelector('.nav-btn'));
+        } catch (e) {
+            alert("傳送失敗，請檢查網路連線。");
+        } finally {
+            btn.disabled = false; btn.innerText = "確認預約並送出";
+        }
+    }
+
+    async function updateMemberInfo() {
+        const btn = document.getElementById('save-mem-btn');
+        btn.disabled = true; btn.innerText = "更新中...";
+        const newName = document.getElementById('mem-name').value.trim();
+        try {
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateMember", data: { account: currentLoggedUser, name: newName, address: document.getElementById('mem-address').value } }) });
+            alert("會員資料已成功更新。");
+            document.getElementById('user-display').innerText = (newName ? newName : "尊榮會員") + "：" + currentLoggedUser;
+        } catch (e) { alert("更新失敗，請檢查連線。"); } 
+        finally { btn.disabled = false; btn.innerText = "更新會員資料"; }
+    }
+</script>
+</body>
+</html>
