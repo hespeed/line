@@ -43,7 +43,8 @@
         input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         input:disabled { background-color: var(--disabled-bg); cursor: not-allowed; color: #6c757d; }
         
-        .submit-btn { background: var(--primary-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .submit-btn { background: var(--primary-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .submit-btn:active { opacity: 0.8; }
         .logged-in-only { display: none; }
 
         .floating-line-btn {
@@ -73,18 +74,17 @@
             backdrop-filter: blur(3px);
         }
         .modal-content {
-            background: #fff; width: 90%; max-width: 450px; max-height: 85vh;
+            background: #fff; width: 92%; max-width: 450px; max-height: 85vh;
             border-radius: 20px; padding: 25px; box-sizing: border-box;
             position: relative; overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             border: 2px solid #eef7ff;
         }
-        .floral-decor {
-            position: absolute; font-size: 2rem; opacity: 0.8;
-        }
+        .floral-decor { position: absolute; font-size: 2rem; opacity: 0.8; }
         .floral-decor.top-left { top: 10px; left: 10px; }
         .floral-decor.top-right { top: 10px; right: 10px; }
-        .floral-decor.bottom-right { bottom: 80px; right: 10px; opacity: 0.4; font-size: 3rem;}
+        .floral-decor.bottom-right { bottom: 80px; right: 10px; opacity: 0.3; font-size: 3rem;}
+        
         .modal-content h3 {
             text-align: center; color: #4a7c59; margin-top: 5px; font-size: 1.3rem;
             border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px;
@@ -161,7 +161,7 @@
         </select>
     </div>
 
-    <!-- ================== 去程區塊 (trip-1) ================== -->
+    <!-- ================== 去程區塊 ================== -->
     <div id="trip-1-block">
         <label>服務類型 (去程)</label>
         <select id="order-type" onchange="adjustFieldsByService('order-')">
@@ -205,7 +205,7 @@
         <label>備註需求</label><input type="text" id="order-note" placeholder="例如：需嬰兒座椅、2個28吋行李箱">
     </div>
 
-    <!-- ================== 回程區塊 (trip-2) ================== -->
+    <!-- ================== 回程區塊 ================== -->
     <div id="trip-2-block" style="display: none; border-top: 3px dashed var(--primary-blue); margin-top: 30px; padding-top: 15px;">
         <h3 style="color:var(--primary-blue); margin-top:0; text-align: center;">🔄 回程預訂資訊</h3>
         <label>服務類型 (回程)</label>
@@ -260,6 +260,9 @@
     
     <button class="submit-btn" id="save-mem-btn" onclick="updateMemberInfo()">更新會員資料</button>
     <button class="submit-btn" style="background:#666; margin-top: 10px;" onclick="location.reload()">登出系統</button>
+    
+    <!-- 🟢 新增：專屬測試重置按鈕 -->
+    <button class="submit-btn" style="background:#ff9800; margin-top: 25px;" onclick="resetReminderForTest()">重置溫馨提醒 (Boss測試專用)</button>
 </div>
 
 <a href="https://line.me/R/ti/p/@372fxlit" target="_blank" class="floating-line-btn">
@@ -392,13 +395,13 @@
             flightStar.style.display = 'inline';
             flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
         } else if (type === "機場送機") {
-            note.innerHTML = "<b>送機提醒：</b>使用者預定時間，但接單後服務人員將視狀況告知正確的接車時間。若超過預定，仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
+            note.innerHTML = "<b>送機提醒：</b>使用者預定時間，但接單後服務人員將視狀況告知正確的接車時間。";
             pCont.innerHTML = `<label>起點 (接人地址)</label>` + addrInp;
             dCont.innerHTML = `<label>終點 (機場)</label>` + airportSel;
             flightStar.style.display = 'inline';
             flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
         } else {
-            note.innerHTML = "<b>定點提醒：</b>若超過預定，仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
+            note.innerHTML = "<b>定點提醒：</b>若超過預定，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
             pCont.innerHTML = `<label>起點地址</label><input type="text" id="${prefix}p-addr" placeholder="請輸入起點">`;
             dCont.innerHTML = `<label>終點地址</label><input type="text" id="${prefix}d-addr" placeholder="請輸入終點">`;
             flightStar.style.display = 'none';
@@ -430,7 +433,7 @@
         finally { btn.innerText = "確認 登入 / 註冊"; btn.disabled = false; }
     }
 
-    // 🌸 登入成功後，檢查是否需要顯示彈窗
+    // 🌸 強化的登入成功與彈窗觸發引擎
     function loginSuccess(name, acc) {
         currentLoggedUser = acc;
         currentUserName = name;
@@ -440,8 +443,12 @@
         document.querySelectorAll('.logged-in-only').forEach(e => e.style.display = 'block');
         switchTab('home', document.querySelector('.nav-btn'));
 
-        // 檢查 Local Storage 中是否已有標記，若無則顯示彈窗
-        if (!localStorage.getItem('hideReminder_' + acc)) {
+        // 確保防呆，如果讀取紀錄失敗，也一律顯示彈窗
+        try {
+            if (localStorage.getItem('hideReminder_' + acc) !== 'true') {
+                document.getElementById('reminder-modal').style.display = 'flex';
+            }
+        } catch(e) {
             document.getElementById('reminder-modal').style.display = 'flex';
         }
     }
@@ -450,10 +457,18 @@
     function closeReminder() {
         const dontShowAgain = document.getElementById('dont-show-again').checked;
         if (dontShowAgain) {
-            // 如果勾選，將狀態存入瀏覽器，與帳號綁定
             localStorage.setItem('hideReminder_' + currentLoggedUser, 'true');
         }
         document.getElementById('reminder-modal').style.display = 'none';
+    }
+
+    // 🌸 測試用重置按鈕
+    function resetReminderForTest() {
+        if(currentLoggedUser) {
+            localStorage.removeItem('hideReminder_' + currentLoggedUser);
+            document.getElementById('dont-show-again').checked = false;
+            alert("✅ 已成功重置！下次登入或重新整理網頁時，溫馨提醒彈窗將會再次出現。");
+        }
     }
 
     function openBooking(type) {
