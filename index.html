@@ -64,6 +64,37 @@
             transform: translateY(-50%); border-width: 6px 0 6px 6px;
             border-style: solid; border-color: transparent transparent transparent white;
         }
+
+        /* 🌸 新增：溫馨提醒彈窗專用樣式 🌸 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 10001;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 450px; max-height: 85vh;
+            border-radius: 20px; padding: 25px; box-sizing: border-box;
+            position: relative; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 2px solid #eef7ff;
+        }
+        .floral-decor {
+            position: absolute; font-size: 2rem; opacity: 0.8;
+        }
+        .floral-decor.top-left { top: 10px; left: 10px; }
+        .floral-decor.top-right { top: 10px; right: 10px; }
+        .floral-decor.bottom-right { bottom: 80px; right: 10px; opacity: 0.4; font-size: 3rem;}
+        .modal-content h3 {
+            text-align: center; color: #4a7c59; margin-top: 5px; font-size: 1.3rem;
+            border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px;
+        }
+        .reminder-list {
+            list-style: none; padding: 0; margin: 15px 0; color: #333; font-size: 0.9rem; line-height: 1.6;
+        }
+        .reminder-list li { margin-bottom: 8px; padding-left: 20px; text-indent: -20px; }
+        .reminder-list li::before { content: "🌿 "; }
+        
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(6, 199, 85, 0.7); }
             70% { box-shadow: 0 0 0 15px rgba(6, 199, 85, 0); }
@@ -122,7 +153,6 @@
 </div>
 
 <div id="booking" class="section-container">
-    <!-- 🟢 頂部增加單程 / 來回 預訂選項 -->
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 style="color:var(--primary-blue); margin:0;">服務預訂</h2>
         <select id="trip-mode" style="width: auto; padding: 8px; font-weight: bold; color: var(--primary-blue); border: 2px solid var(--primary-blue);" onchange="toggleTripMode()">
@@ -220,7 +250,6 @@
         <label>備註需求</label><input type="text" id="return-note" placeholder="例如：需嬰兒座椅、2個28吋行李箱">
     </div>
 
-    <!-- 共用送出按鈕 -->
     <button class="submit-btn" id="order-btn" onclick="handleOrder()">確認預約並送出</button>
 </div>
 
@@ -240,6 +269,40 @@
     </svg>
 </a>
 
+<!-- 🌸 溫馨提醒彈窗 HTML 結構 🌸 -->
+<div id="reminder-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="floral-decor top-left">🌿</div>
+        <div class="floral-decor top-right">🌸</div>
+        <div class="floral-decor bottom-right">🍃</div>
+        
+        <h3>特殊需求溫馨提醒事項</h3>
+        <ul class="reminder-list">
+            <li>多點接送、機場舉牌、安全椅、增高墊⋯等，需加計費用。</li>
+            <li>多點接送以接送點數量與增加的里程數計價。</li>
+            <li>機場舉牌服務費 NT$200。</li>
+            <li>增設安全椅或增高墊等設備，費用在NT$200-NT$500不等，視車型而定。</li>
+            <li>單純起點至終點交通行程，不停留景點或用餐，並請準時上車。</li>
+            <li>機場接機，若超過落地時間90分鐘仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。</li>
+            <li>機場送機，若超過預定時間仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。</li>
+            <li>定點接送，若超過預定時間仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。</li>
+            <li>長途可停留休息站上廁所，停留約15分鐘，逾時每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。</li>
+            <li>報價內容包含：司機工資費、司機誤餐費、停車費、過路費、油資、乘車保險。</li>
+            <li>報價未稅，稅金5%(發票或旅行業代收轉付收據)。</li>
+            <li>我司所安排的車款皆為合法營業租賃車(如車牌為R開頭或T開頭)，非無保險理賠之白牌車(如車牌為A開頭或B開頭)。</li>
+        </ul>
+        
+        <button onclick="closeReminder()" class="submit-btn" style="background-color: #4a7c59; margin-top: 10px;">確認並進入服務</button>
+        
+        <div style="margin-top: 15px; text-align: center;">
+            <label style="display: inline-flex; align-items: center; justify-content: center; font-weight: normal; cursor: pointer; color: #555; font-size: 0.85rem;">
+                <input type="checkbox" id="dont-show-again" style="width: auto; margin: 0 8px 0 0; transform: scale(1.2);">
+                使用者已確認，此訊息以後不需要再出現。
+            </label>
+        </div>
+    </div>
+</div>
+
 <script>
     // 🔴 這裡請填入您最新的 GAS 發佈網址 與 LIFF ID
     const API_URL = "https://script.google.com/macros/s/AKfycbyRN6Op8T7-JpJRff0ujK_8nfrYAqYGLmwFqyKTfUDiJgmczM1wn-39jeB5efLNFZz4/exec"; 
@@ -250,7 +313,6 @@
     let currentLineUserId = ""; 
 
     window.onload = function() {
-        // 同時初始化去程與回程的下拉選單
         const p1 = document.getElementById('order-pax'), p2 = document.getElementById('return-pax');
         const l1 = document.getElementById('order-luggage'), l2 = document.getElementById('return-luggage');
         for (let i = 1; i <= 8; i++) {
@@ -296,27 +358,22 @@
         }
     }
 
-    // 🟢 切換來回預訂模式與智能判斷
     function toggleTripMode() {
         const mode = document.getElementById('trip-mode').value;
         const trip2Block = document.getElementById('trip-2-block');
         if (mode === 'round-trip') {
             trip2Block.style.display = 'block';
-            
-            // 智能：若去程選接機，回程自動變送機；反之亦然
             const type1 = document.getElementById('order-type').value;
             const type2Elem = document.getElementById('return-type');
             if (type1 === '機場接機') type2Elem.value = '機場送機';
             else if (type1 === '機場送機') type2Elem.value = '機場接機';
             else type2Elem.value = '定點接送';
-            
             adjustFieldsByService('return-');
         } else {
             trip2Block.style.display = 'none';
         }
     }
 
-    // 🟢 支援共用的服務選項調整 (prefix 為 order- 或 return-)
     function adjustFieldsByService(prefix) {
         const type = document.getElementById(prefix + 'type').value;
         const note = document.getElementById(prefix + 'dynamic-note');
@@ -335,13 +392,13 @@
             flightStar.style.display = 'inline';
             flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
         } else if (type === "機場送機") {
-            note.innerHTML = "<b>送機提醒：</b>使用者預定時間，但接單後服務人員將視狀況告知正確的接車時間。";
+            note.innerHTML = "<b>送機提醒：</b>使用者預定時間，但接單後服務人員將視狀況告知正確的接車時間。若超過預定，仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
             pCont.innerHTML = `<label>起點 (接人地址)</label>` + addrInp;
             dCont.innerHTML = `<label>終點 (機場)</label>` + airportSel;
             flightStar.style.display = 'inline';
             flightInput.disabled = false; flightInput.placeholder = "請填寫航班編號";
         } else {
-            note.innerHTML = "<b>定點提醒：</b>若超過預定，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
+            note.innerHTML = "<b>定點提醒：</b>若超過預定，仍未上車，每15分鐘加收NT$100逾時費，不足15分鐘以15分鐘計。";
             pCont.innerHTML = `<label>起點地址</label><input type="text" id="${prefix}p-addr" placeholder="請輸入起點">`;
             dCont.innerHTML = `<label>終點地址</label><input type="text" id="${prefix}d-addr" placeholder="請輸入終點">`;
             flightStar.style.display = 'none';
@@ -349,7 +406,6 @@
         }
     }
 
-    // 🟢 支援共用的車型檢查
     function checkCarType(prefix) {
         const paxCount = parseInt(document.getElementById(prefix + 'pax').value);
         if (paxCount > 4) document.getElementById(prefix + 'car').value = "商務7~9人座車";
@@ -374,6 +430,7 @@
         finally { btn.innerText = "確認 登入 / 註冊"; btn.disabled = false; }
     }
 
+    // 🌸 登入成功後，檢查是否需要顯示彈窗
     function loginSuccess(name, acc) {
         currentLoggedUser = acc;
         currentUserName = name;
@@ -382,6 +439,21 @@
         document.querySelectorAll('.guest-only').forEach(e => e.style.display = 'none');
         document.querySelectorAll('.logged-in-only').forEach(e => e.style.display = 'block');
         switchTab('home', document.querySelector('.nav-btn'));
+
+        // 檢查 Local Storage 中是否已有標記，若無則顯示彈窗
+        if (!localStorage.getItem('hideReminder_' + acc)) {
+            document.getElementById('reminder-modal').style.display = 'flex';
+        }
+    }
+
+    // 🌸 關閉彈窗功能與儲存狀態
+    function closeReminder() {
+        const dontShowAgain = document.getElementById('dont-show-again').checked;
+        if (dontShowAgain) {
+            // 如果勾選，將狀態存入瀏覽器，與帳號綁定
+            localStorage.setItem('hideReminder_' + currentLoggedUser, 'true');
+        }
+        document.getElementById('reminder-modal').style.display = 'none';
     }
 
     function openBooking(type) {
@@ -389,7 +461,6 @@
             alert("請先完成登入或註冊！");
             return switchTab('login', document.querySelectorAll('.nav-btn')[1]);
         }
-        // 重置為單程預訂
         document.getElementById('trip-mode').value = 'one-way';
         toggleTripMode();
         document.getElementById('order-type').value = type;
@@ -397,7 +468,6 @@
         switchTab('booking', null);
     }
 
-    // 🟢 擷取與驗證表單資料的獨立函數
     function extractOrderData(prefix, tripName) {
         const type = document.getElementById(prefix + 'type').value;
         const flightNum = document.getElementById(prefix + 'flight').value.trim();
@@ -428,27 +498,23 @@
         };
     }
 
-    // 🟢 改寫送出邏輯：若為來回，則拆分為兩筆訂單依序送出
     async function handleOrder() {
         const tripMode = document.getElementById('trip-mode').value;
         
         const trip1Data = extractOrderData('order-', '去程');
-        if (!trip1Data) return; // 驗證未通過
+        if (!trip1Data) return;
 
         let trip2Data = null;
         if (tripMode === 'round-trip') {
             trip2Data = extractOrderData('return-', '回程');
-            if (!trip2Data) return; // 驗證未通過
+            if (!trip2Data) return;
         }
 
         const btn = document.getElementById('order-btn');
         btn.disabled = true; btn.innerText = "資料傳送中...";
 
         try {
-            // 1. 傳送去程訂單
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitOrder", data: trip1Data }) });
-            
-            // 2. 若有回程，等去程送完後，繼續傳送回程訂單
             if (trip2Data) {
                 await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitOrder", data: trip2Data }) });
             }
